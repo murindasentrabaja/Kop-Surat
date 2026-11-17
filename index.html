@@ -98,7 +98,7 @@ input::placeholder{color:rgba(255,255,255,.45)}input:focus,textarea:focus{outlin
 .kopH .kh-qr{padding:1mm;background:#fff;border:.25mm solid #004888;border-radius:1.2mm;box-shadow:0 0 0 .55mm #fff,0 0 0 .8mm #F8D000}
 .kopH .kh-adr{letter-spacing:.01em}
 
-#cn{display:block;max-width:min(520px,60vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style></head><body>
+#cn{display:block;max-width:min(520px,60vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}@media print{body.nosave #sheets{display:none!important}body.nosave:before{content:"Nomor kop belum disimpan. Klik Simpan sebelum mencetak.";display:block;padding:20mm;font:600 14pt Arial,sans-serif;color:#000}}</style></head><body>
 <div class="bgs"><div class="bg" id="b0"></div><div class="bg" id="b1"></div></div>
 <div class="app">
 <aside class="side glass">
@@ -120,7 +120,7 @@ input::placeholder{color:rgba(255,255,255,.45)}input:focus,textarea:focus{outlin
  <details class="sec" id="hcard" hidden><summary>Riwayat</summary><div id="hist"></div></details>
 </aside>
 <main class="main">
- <div class="tb glass"><span class="grow" id="info"></span><button class="btn" id="up">Unggah</button><span class="zg"><button id="zo">−</button><button id="zf">Pas</button><button id="zi">＋</button></span><button class="btn p" id="pr" disabled>Cetak / PDF</button></div>
+ <div class="tb glass"><span class="grow" id="info"></span><button class="btn" id="up">Unggah</button><span class="zg"><button id="zo">−</button><button id="zf">Pas</button><button id="zi">＋</button></span><button class="btn" id="sv" disabled>Simpan</button><button class="btn p" id="pr" disabled>Cetak / PDF</button></div>
  <div id="stage">
   <div id="empty"><div class="dz glass" id="dz"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><b>Letakkan file di sini</b><span>Word (.docx) atau PDF</span></div></div>
   <div id="sheets" class="docx-wrapper"></div>
@@ -281,7 +281,7 @@ function render(){
   const x=it[i],body=pdf?`<div class="cut" style="width:${x.w*s}mm;height:${x.h*s}mm;margin:0 auto"><img src="${p.src}" style="width:${p.W*p.mm*s}mm;margin:${-p.t*p.mm*s}mm 0 0 ${-ux0*s}mm"></div>`:`<div class="dx" data-i="${i}" style="width:${x.w*s}mm;height:${x.h*s}mm;margin:0 auto"></div>`;
   return`<section class="sheet">${i?'':kopHead()+`<div class="kno"><span>No. Kop : <b>${esc(VALID)}</b></span><span>Tgl. Kop : ${esc(CUR.tgl)}</span></div>`}<div class="bd" style="top:${i?16:42}mm">${body}</div><div class="ft" style="background-image:url(&quot;${kopFoot(F)}&quot;)"><span>${esc(VALID)} · Halaman ${i+1} dari ${n}</span></div></section>`}).join('');
  if(!pdf)document.querySelectorAll('.dx').forEach(d=>{const p=P[+d.dataset.i],w=document.createElement('div');w.className='docx';w.style.cssText=`width:${p.w}px;transform:scale(${s})`;w.appendChild(p.el.cloneNode(true));d.appendChild(w)});
- $('#empty').hidden=true;$('#pr').disabled=false;$('#info').innerHTML=`<b>${esc(CUR.file)}</b> · ${n} halaman`;fit()}
+ $('#empty').hidden=true;$('#pr').disabled=!CUR.saved;$('#sv').disabled=!!CUR.saved;document.body.classList.toggle('nosave',!CUR.saved);$('#info').innerHTML=`<b>${esc(CUR.file)}</b> · ${n} halaman · ${CUR.saved?'Tersimpan':'<b>Belum disimpan</b>'}`;fit()}
 function fit(m){if(m)ZM=m;const w=$('#stage').clientWidth-48;document.documentElement.style.setProperty('--z',Math.min(1.5,Math.max(.3,w/794))*ZM)}
 const API_URL='https://script.google.com/macros/s/AKfycbyd_1E78624ubajwMoq2erJwJwIi7ToIK-nKP9C-5PAjVFwCskONs2QG36cYrP1cB7sIw/exec',API_KEY='';/* ← tempel URL Web App (berakhiran /exec) di antara tanda kutip; kosong = mode lokal */
 const kkSv={},kkTgl=t=>new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'});
@@ -291,6 +291,11 @@ async function kkDaftar(h,file,jenis,hal){
  if(API_URL){const j=await kkApi({act:'daftar',hash:h,file,jenis,hal});return{n:j.rec.n,fp:j.rec.fp,t:j.rec.t,dup:j.dup}}
  const m=H.find(x=>x.h==h);if(m)return{n:m.n,fp:m.fp,t:m.t,dup:true};
  const d=new Date();let seq=1;try{seq=(+localStorage.getItem('kk_seq')||0)+1}catch(e){}put('kk_seq',seq);
+ return{n:`${String(seq).padStart(4,'0')}/${S.kode}/${RM[d.getMonth()]}/${d.getFullYear()}`,fp:mkFp(h),t:d.toISOString(),dup:false}}
+async function kkLihat(h,file,jenis,hal){
+ if(API_URL){const j=await kkApi({act:'lihat',hash:h,file,jenis,hal});return{n:j.rec.n,fp:j.rec.fp,t:j.rec.t,dup:j.dup}}
+ const m=H.find(x=>x.h==h);if(m)return{n:m.n,fp:m.fp,t:m.t,dup:true};
+ const d=new Date();let seq=1;try{seq=(+localStorage.getItem('kk_seq')||0)+1}catch(e){}
  return{n:`${String(seq).padStart(4,'0')}/${S.kode}/${RM[d.getMonth()]}/${d.getFullYear()}`,fp:mkFp(h),t:d.toISOString(),dup:false}}
 async function kkSimpan(){if(!API_URL)return;const data={};['nama','alamat','tel','email','web','qr','kode'].forEach(k=>data[k]=S[k]);try{await kkApi({act:'simpan',data});toast('Identitas tersimpan di spreadsheet')}catch(e){toast('Gagal menyimpan: '+(e.message||e),1)}}
 async function kkBoot(){
@@ -307,13 +312,12 @@ async function handle(file){
   busy(1,'Membaca dokumen…',5);
   try{
    const buf=await file.arrayBuffer(),h=await sha(buf),res=ext=='pdf'?await readPdf(buf):await readDocx(buf);
-   busy(1,'Mencatat nomor…',95);
-   const r=await kkDaftar(h,file.name,ext,res.pages.length);
+   busy(1,'Menyiapkan nomor…',95);
+   const r=await kkLihat(h,file.name,ext,res.pages.length);
    if(CUR&&CUR.host)CUR.host.remove();
-   CUR={...res,file:file.name,no:r.n,fp:r.fp,hash:h,tgl:kkTgl(r.t),dup:r.dup};
+   CUR={...res,file:file.name,no:r.n,fp:r.fp,hash:h,tgl:kkTgl(r.t),saved:r.dup};
    render();
-   H=H.filter(x=>x.h!=h);H.unshift({n:r.n,f:file.name,fp:r.fp,h,t:r.t,p:res.pages.length});put('kk_his',JSON.stringify(H.slice(0,200)));hist();
-   toast(r.dup?'Dokumen sudah terdaftar · memakai nomor yang sama: '+r.n:'Kop terpasang · No. '+r.n+' · '+CUR.pages.length+' halaman');
+   toast(r.dup?'Dokumen sudah terdaftar · memakai nomor yang sama: '+r.n:'Kop terpasang · klik Simpan untuk menetapkan No. '+r.n);
   }catch(e){console.error(e);toast('Gagal memproses file: '+(e.message||e),1)}
   busy(0)}
 function hist(){$('#hcard').hidden=!H.length;$('#hist').innerHTML=H.length?H.slice(0,12).map((r,i)=>`<div class="hi" data-i="${i}" title="Klik untuk menyalin kode seri"><b>${esc(r.f)}</b><code>${esc(r.fp)}</code><br><small>${esc(r.n)} · ${new Date(r.t).toLocaleDateString('id-ID')}</small></div>`).join('')+'<button class="btn w" id="hc" style="margin-top:8px">Hapus riwayat</button>':''}
@@ -329,7 +333,14 @@ $('#fi').onchange=e=>{const f=e.target.files[0];e.target.value='';f&&handle(f)};
 ['dragenter','dragover'].forEach(v=>addEventListener(v,e=>{e.preventDefault();document.body.classList.add('drg')}));
 addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('drg')});
 addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drg');const f=e.dataTransfer.files[0];f&&handle(f)});
-$('#pr').onclick=()=>print();
+$('#pr').onclick=()=>{if(!CUR||!CUR.saved)return toast('Simpan nomor kop dulu sebelum mencetak / PDF.',1);print()};
+$('#sv').onclick=async()=>{if(!CUR||CUR.saved)return;busy(1,'Menyimpan nomor…',60);
+ try{const r=await kkDaftar(CUR.hash,CUR.file,CUR.k,CUR.pages.length);
+  CUR.no=r.n;CUR.fp=r.fp;CUR.tgl=kkTgl(r.t);CUR.saved=true;render();
+  H=H.filter(x=>x.h!=CUR.hash);H.unshift({n:r.n,f:CUR.file,fp:r.fp,h:CUR.hash,t:r.t,p:CUR.pages.length});put('kk_his',JSON.stringify(H.slice(0,200)));hist();
+  toast('Tersimpan · No. '+r.n+' · sekarang bisa dicetak / PDF')}catch(e){toast('Gagal menyimpan: '+(e.message||e),1)}
+ busy(0)};
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()=='p'&&CUR&&!CUR.saved){e.preventDefault();toast('Simpan nomor kop dulu sebelum mencetak.',1)}});
 onbeforeprint=()=>{if(CUR)document.title='Surat-'+CUR.no.replace(/\//g,'-')};onafterprint=()=>document.title='Sistem Kop Surat';
 $('#zi').onclick=()=>fit(ZM*1.12);$('#zo').onclick=()=>fit(ZM/1.12);$('#zf').onclick=()=>fit(1);addEventListener('resize',()=>fit());
 document.querySelectorAll('[data-k]').forEach(i=>{i.value=S[i.dataset.k]||'';i.oninput=()=>{S[i.dataset.k]=i.value;put('kk_set',JSON.stringify(S));clearTimeout(render.t);render.t=setTimeout(render,250);clearTimeout(kkSv.t);kkSv.t=setTimeout(kkSimpan,1500)}});
