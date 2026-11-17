@@ -276,10 +276,10 @@ function render(){
  const P=CUR.pages,n=P.length,pdf=CUR.k=='pdf';let ux0=1e9,ux1=0;
  if(pdf)P.forEach(p=>{ux0=Math.min(ux0,p.a*p.mm);ux1=Math.max(ux1,p.b*p.mm)});
  const it=P.map(p=>pdf?{w:ux1-ux0,h:(p.u-p.t)*p.mm}:{w:p.w*MM,h:p.h*MM});
- let s=Math.min(1.1,BW/Math.max(...it.map(x=>x.w)));it.forEach((x,i)=>{s=Math.min(s,(i?A2:A1)/x.h)});
+ let s=Math.min(1.1,BW/Math.max(...it.map(x=>x.w)));it.forEach((x,i)=>{s=Math.min(s,A1/x.h)});
  $('#sheets').innerHTML=P.map((p,i)=>{
   const x=it[i],body=pdf?`<div class="cut" style="width:${x.w*s}mm;height:${x.h*s}mm;margin:0 auto"><img src="${p.src}" style="width:${p.W*p.mm*s}mm;margin:${-p.t*p.mm*s}mm 0 0 ${-ux0*s}mm"></div>`:`<div class="dx" data-i="${i}" style="width:${x.w*s}mm;height:${x.h*s}mm;margin:0 auto"></div>`;
-  return`<section class="sheet">${i?'':kopHead()+`<div class="kno"><span>No. Kop : <b>${esc(VALID)}</b></span><span>Tgl. Kop : ${esc(CUR.tgl)}</span></div>`}<div class="bd" style="top:${i?16:42}mm">${body}</div><div class="ft" style="background-image:url(&quot;${kopFoot(F)}&quot;)"><span>${esc(VALID)} · Halaman ${i+1} dari ${n}</span></div></section>`}).join('');
+  return`<section class="sheet">${kopHead()+`<div class="kno"><span>No. Kop : <b>${esc(VALID)}</b></span><span>Tgl. Kop : ${esc(CUR.tgl)}</span></div>`}<div class="bd" style="top:42mm">${body}</div><div class="ft" style="background-image:url(&quot;${kopFoot(F)}&quot;)"><span>${esc(VALID)} · Halaman ${i+1} dari ${n}</span></div></section>`}).join('');
  if(!pdf)document.querySelectorAll('.dx').forEach(d=>{const p=P[+d.dataset.i],w=document.createElement('div');w.className='docx';w.style.cssText=`width:${p.w}px;transform:scale(${s})`;w.appendChild(p.el.cloneNode(true));d.appendChild(w)});
  $('#empty').hidden=true;$('#pr').disabled=!CUR.saved;$('#sv').disabled=!!CUR.saved;document.body.classList.toggle('nosave',!CUR.saved);$('#info').innerHTML=`<b>${esc(CUR.file)}</b> · ${n} halaman · ${CUR.saved?'Tersimpan':'<b>Belum disimpan</b>'}`;fit()}
 function fit(m){if(m)ZM=m;const w=$('#stage').clientWidth-48;document.documentElement.style.setProperty('--z',Math.min(1.5,Math.max(.3,w/794))*ZM)}
